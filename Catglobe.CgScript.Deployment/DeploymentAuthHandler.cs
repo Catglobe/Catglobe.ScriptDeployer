@@ -18,8 +18,8 @@ internal partial class DeploymentAuthHandler(IOptions<DeploymentOptions> options
 
    private async Task AcquireToken(CancellationToken cancellationToken)
    {
-      var o          = options.Value;
-      var httpClient = new HttpClient();
+      var o = options.Value;
+      var httpClient = new HttpClient() { BaseAddress = new(options.Value.Authority) };
       var requestData = new Dictionary<string, string> {
          {"grant_type", "client_credentials"},
          {"client_id", o.ClientId},
@@ -28,7 +28,7 @@ internal partial class DeploymentAuthHandler(IOptions<DeploymentOptions> options
          {"scope", "scriptdeployment:w"},
       };
 
-      var requestMessage = new HttpRequestMessage(HttpMethod.Post, "/connect/token") {Content = new FormUrlEncodedContent(requestData), Headers = {Accept = {new("application/json")}}};
+      var requestMessage = new HttpRequestMessage(HttpMethod.Post, "/connect/token") { Content = new FormUrlEncodedContent(requestData), Headers = { Accept = { new("application/json") } } };
 
       var response = await httpClient.SendAsync(requestMessage, cancellationToken);
       response.EnsureSuccessStatusCode();
@@ -41,7 +41,7 @@ internal partial class DeploymentAuthHandler(IOptions<DeploymentOptions> options
    private class TokenResponse
    {
       [JsonPropertyName("access_token")] public string AccessToken { get; set; } = null!;
-      [JsonPropertyName("expires_in")]   public int    ExpiresIn   { get; set; }
+      [JsonPropertyName("expires_in")] public int ExpiresIn { get; set; }
    }
 
    [JsonSerializable(typeof(TokenResponse))]
