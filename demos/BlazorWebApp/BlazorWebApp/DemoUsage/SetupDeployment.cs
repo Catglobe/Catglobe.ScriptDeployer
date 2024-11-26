@@ -11,7 +11,8 @@ internal class SetupDeployment
 
    public static async Task Sync(WebApplication app)
    {
-      await app.Services.GetRequiredService<IDeployer>().Sync(default);
+      //if (!app.Environment.IsDevelopment())
+         await app.Services.GetRequiredService<IDeployer>().Sync("Production" /*app.Environment.EnvironmentName*/, default);
    }
 }
 
