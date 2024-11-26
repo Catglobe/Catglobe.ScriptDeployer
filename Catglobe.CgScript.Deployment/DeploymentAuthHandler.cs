@@ -20,6 +20,7 @@ internal partial class DeploymentAuthHandler(IOptions<DeploymentOptions> options
    {
       var o          = options.Value;
       var httpClient = new HttpClient();
+      httpClient.BaseAddress = options.Value.Authority;
       var requestData = new Dictionary<string, string> {
          {"grant_type", "client_credentials"},
          {"client_id", o.ClientId},
