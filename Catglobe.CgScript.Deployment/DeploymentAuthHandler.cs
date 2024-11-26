@@ -42,7 +42,6 @@ internal partial class DeploymentAuthHandler(IOptions<DeploymentOptions> options
    private class TokenResponse
    {
       [JsonPropertyName("access_token")] public string AccessToken { get; set; } = null!;
-      [JsonPropertyName("expires_in")] public int ExpiresIn { get; set; }
    }
 
    [JsonSerializable(typeof(TokenResponse))]

@@ -84,7 +84,7 @@ internal class CgScriptApiClient(HttpClient httpClient, IScriptMapping map) : IC
 
    private static async Task<ScriptResult<TR>> ParseResponse<TR>(HttpResponseMessage call, JsonTypeInfo<TR> resultJsonTypeInfo, CancellationToken cancellationToken)
    {
-      var jsonTypeInfo = JsonMetadataServices.CreateValueInfo<ScriptResult<TR>>(new(), new ScriptResultConverterWithTypeInfo<TR>(resultJsonTypeInfo));
+      var jsonTypeInfo = JsonMetadataServices.CreateValueInfo<ScriptResult<TR>>(new(){TypeInfoResolver = new DummyResolver<TR>(resultJsonTypeInfo)}, new ScriptResultConverterWithTypeInfo<TR>(resultJsonTypeInfo));
       call.EnsureSuccessStatusCode();
       var result = await call.Content.ReadFromJsonAsync(jsonTypeInfo, cancellationToken).ConfigureAwait(false);
       return result ?? throw new IOException("Could not deserialize result");
@@ -117,4 +117,8 @@ internal class CgScriptApiClient(HttpClient httpClient, IScriptMapping map) : IC
       return $"run/{map.GetIdOf(scriptName)}{additionalParameters ?? ""}";
    }
 
+   private class DummyResolver<T>(JsonTypeInfo info) : IJsonTypeInfoResolver
+   {
+      public JsonTypeInfo? GetTypeInfo(Type type, JsonSerializerOptions options) => type == typeof(T) ? info : null;
+   }
 }
