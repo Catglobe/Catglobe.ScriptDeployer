@@ -1,0 +1,3 @@
+string city = Workflow_getParameters()[0];
+
+return "It's too hot in " + city;

@@ -1,0 +1,2 @@
+WorkflowScript actualForecasts = new WorkflowScript("ThePublicWeatherForecast");
+return actualForecasts.Execute(Workflow_getParameters());

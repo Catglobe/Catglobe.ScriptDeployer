@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+   <PropertyGroup>
+      <PackageId>Catglobe.CgScript.Deployment</PackageId>
+      <Version>0.0.3</Version>
+      <Authors>Dennis Haney</Authors>
+      <Company>Voxmeter A/S</Company>
+      <Product>Catglobe Script Deployer</Product>
+      <Id>catglobe-script-deployer</Id>
+      <Title>Catglobe Script Deployer</Title>
+      <Authors>Dennis Haney</Authors>
+      <RepositoryType>git</RepositoryType>
+      <RepositoryUrl>https://github.com/catglobe/Catglobe.ScriptDeployer</RepositoryUrl>
+      <description>Development and deployment support for sites that needs scripts to run on a Catglobe site.</description>
+      <RepositoryCommit>e5d0dbf09c927044556a876eff07b81296da8976</RepositoryCommit>
+      <PackageReadmeFile>README.md</PackageReadmeFile>
+   </PropertyGroup>
+
+   <PropertyGroup>
+      <TargetFramework>net9.0</TargetFramework>
+      <ImplicitUsings>enable</ImplicitUsings>
+      <Nullable>enable</Nullable>
+      <IsTrimmable>true</IsTrimmable>
+      <ImplicitUsings>enable</ImplicitUsings>
+      <GenerateDocumentationFile>True</GenerateDocumentationFile>
+      <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+      <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+   </PropertyGroup>
+
+   <ItemGroup>
+      <ProjectReference Include="..\Catglobe.CgScript.Common\Catglobe.CgScript.Common.csproj" />
+   </ItemGroup>
+
+   <ItemGroup>
+      <Content Include="../README.md">
+         <Pack>true</Pack>
+         <PackagePath></PackagePath>
+      </Content>
+   </ItemGroup>
+
+   <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.0" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.0" />
+   </ItemGroup>
+
+</Project>
