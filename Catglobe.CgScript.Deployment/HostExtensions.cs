@@ -42,7 +42,7 @@ public static class HostExtensions
       services.AddScoped<DeploymentAuthHandler>();
       services.AddHttpClient<IDeployer, Deployer>((sp, httpClient) => {
                   var site = sp.GetRequiredService<IOptions<DeploymentOptions>>().Value.Authority;
-                  httpClient.BaseAddress = new(site + "/api/CgScriptDeployment/");
+                  httpClient.BaseAddress = new(site + "api/CgScriptDeployment/");
                })
               .AddHttpMessageHandler<DeploymentAuthHandler>();
       return services;

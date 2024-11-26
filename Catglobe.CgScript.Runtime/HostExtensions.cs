@@ -34,13 +34,13 @@ public static class HostExtensions
       services.AddHttpContextAccessor();
       services.AddHttpClient<IScriptMapping, ScriptMapping>((sp, httpClient) => {
          var site = sp.GetRequiredService<IOptions<CgScriptOptions>>().Value.Site;
-         httpClient.BaseAddress = new(site + "/api/CgScriptDeployment/");
+         httpClient.BaseAddress = new(site + "api/CgScriptDeployment/");
       });
 
       services.AddScoped<CgScriptAuthHandler>();
       services.AddHttpClient<ICgScriptApiClient, CgScriptApiClient>((sp, httpClient) => {
                   var site = sp.GetRequiredService<IOptions<CgScriptOptions>>().Value.Site;
-                  httpClient.BaseAddress = new(site + "/api/CgScript/");
+                  httpClient.BaseAddress = new(site + "api/CgScript/");
                })
               .AddHttpMessageHandler<CgScriptAuthHandler>();
       return services;

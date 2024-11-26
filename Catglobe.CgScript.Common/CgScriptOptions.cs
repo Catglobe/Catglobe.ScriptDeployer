@@ -8,7 +8,7 @@ public class CgScriptOptions
    /// <summary>
    /// Which site are we running on
    /// </summary>
-   public string Site { get; set; } = null!;
+   public Uri Site { get; set; } = null!;
 
    /// <summary>
    /// Which root folder are we running from

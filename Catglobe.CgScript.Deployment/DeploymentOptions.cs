@@ -8,7 +8,7 @@ public class DeploymentOptions
    /// <summary>
    /// The site to deploy to
    /// </summary>
-   public string Authority { get; set; } = null!;
+   public Uri Authority { get; set; } = null!;
    /// <summary>
    /// The OAuth client id
    /// </summary>
