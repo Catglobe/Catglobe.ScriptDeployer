@@ -1,53 +1,50 @@
-﻿using System.Security.Claims;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using BlazorWebApp.CgScript;
-using Catglobe.CgScript.Common;
+﻿using Catglobe.CgScript.Common;
 using Catglobe.CgScript.Runtime;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Yarp.ReverseProxy.Transforms;
 
 namespace BlazorWebApp.DemoUsage;
 
 internal class SetupRuntime
 {
-   private const string SCHEMENAME = "CatglobeOidc"; //must match the section name in appsettings.json
+   internal const string SCHEMENAME = "CatglobeOidc"; //must match the section name in appsettings.json
 
    public static void Configure(WebApplicationBuilder builder)
    {
       // Add services to the container.
-      builder.Services.AddAuthentication(SCHEMENAME)
-          .AddOpenIdConnect(SCHEMENAME, oidcOptions => {
-             // ........................................................................
-             // The OIDC handler must use a sign-in scheme capable of persisting 
-             // user credentials across requests.
-             oidcOptions.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-          })
-          .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
+      var services = builder.Services;
+      services.AddAuthentication(SCHEMENAME)
+                       .AddOpenIdConnect(SCHEMENAME, oidcOptions => {
+                           builder.Configuration.GetSection(SCHEMENAME).Bind(oidcOptions);
+                           // ........................................................................
+                           // The OIDC handler must use a sign-in scheme capable of persisting 
+                           // user credentials across requests.
+                           oidcOptions.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                        })
+                       .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
 
-      builder.Services.AddSingleton<CookieOidcRefresher>();
+      services.AddSingleton<CookieOidcRefresher>();
       // attaches a cookie OnValidatePrincipal callback to get
       // a new access token when the current one expires, and reissue a cookie with the
       // new access token saved inside. If the refresh fails, the user will be signed
       // out. OIDC connect options are set for saving tokens and the offline access
       // scope.
-      builder.Services.AddOptions<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme).Configure<CookieOidcRefresher>((cookieOptions, refresher) => {
+      services.AddOptions<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme).Configure<CookieOidcRefresher>((cookieOptions, refresher) => {
          cookieOptions.Events.OnValidatePrincipal = context => refresher.ValidateOrRefreshCookieAsync(context, SCHEMENAME);
       });
 
-      builder.Services.AddAuthorization();
+      services.AddAuthorization();
 
-      builder.Services.AddHttpForwarder();
+      //Add this, if you need the browser (blazor wasm or javascript) to be able to call CgScript
+      services.AddHttpForwarder();
 
-      builder.Services.AddCgScript(builder.Configuration.GetSection("CatglobeApi"));
+      services.AddCgScript(builder.Configuration.GetSection("CatglobeApi"));
       
       //and this is custom to this specific example... The rest above can be reused for pretty much any site
-      builder.Services.AddSingleton<IWeatherForecaster, ServerWeatherForecaster>();
-      builder.Services.AddSingleton<IPublicWeatherForecaster, ServerPublicWeatherForecaster>();
+      services.AddSingleton<IWeatherForecaster, ServerWeatherForecaster>();
+      services.AddSingleton<IPublicWeatherForecaster, ServerPublicWeatherForecaster>();
    }
 
    public static void Use(WebApplication app)
