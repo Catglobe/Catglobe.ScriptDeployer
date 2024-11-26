@@ -26,7 +26,7 @@ public partial class ScriptFromFileOnDisk : IScriptDefinition
       AllowExecuteWithoutLogin = match.Groups["AllowExecuteWithoutLogin"] is {Success: true};
    }
 
-   [GeneratedRegex(@"^(?<scriptName>.*?(?:@(?<impersonation>)\d+)(?:\.(?<AllowExecuteWithoutLogin>public)?))?\.cgs$", RegexOptions.Singleline | RegexOptions.IgnoreCase, -1)]
+   [GeneratedRegex(@"^(?<scriptName>.*?)(?:@(?<impersonation>\d+)(?:\.(?<AllowExecuteWithoutLogin>public))?)?.cgs$", RegexOptions.Singleline | RegexOptions.IgnoreCase, -1)]
    private static partial Regex GetScriptNameAndImpersonation();
 
    ///<inheritdoc/>
