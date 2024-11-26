@@ -24,12 +24,12 @@ The authentication model is therefore that the developer logs into the using his
 ```cgscript
 number parentResourceId = 42;
 string clientId = "13BAC6C1-8DEC-46E2-B378-90E0325F8132"; //use your own id -> store this in appsettings.Development.json
-bool canKeepSecret = false; //demo is a wasm app, so we can't keep secrets
-string clientSecret = "";
+bool canKeepSecret = true; //demo is a server app, so we can keep secrets
+string clientSecret = "secret";
 bool askUserForConsent = false;
 string layout = "";
-Array RedirectUri = {"https://localhost:7040/authentication/login-callback"};
-Array PostLogoutRedirectUri = {"https://localhost:7040/authentication/logout-callback"};
+Array RedirectUri = {"https://localhost:7176/authentication/login-callback"};
+Array PostLogoutRedirectUri = {"https://localhost:7176/authentication/logout-callback"};
 Array scopes = {"email", "profile", "roles", "openid", "offline_access"};
 Array optionalscopes = {};
 LocalizedString name = new LocalizedString({"da-DK": "Min Demo App", "en-US": "My Demo App"}, "en-US");
