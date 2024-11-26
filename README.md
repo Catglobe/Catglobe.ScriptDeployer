@@ -44,8 +44,8 @@ OidcAuthenticationFlow_createOrUpdate(parentResourceId, clientId, clientSecret, 
 number parentResourceId = 42;
 string clientId = "DA431000-F318-4C55-9458-96A5D659866F"; //use your own id
 string clientSecret = "verysecret";
-number impersonationResourceId = 420;
-Array scopes = {"roles"};
+number impersonationResourceId = User_getCurrentUser().ResourceId;
+Array scopes = {"scriptdeployment:w"};
 LocalizedString name = new LocalizedString({"da-DK": "Min Demo App", "en-US": "My Demo App"}, "en-US");
 OidcServer2ServerClient_createOrUpdate(parentResourceId, clientId, clientSecret, impersonationResourceId, scopes, name);
 ```
