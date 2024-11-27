@@ -34,8 +34,6 @@ jobs:
           node-version: 'lts/*'
       - name: Install dependencies
         run: npm clean-install
-      - name: Compile
-        run: npx gulp
       - name: Release
         run: npx semantic-release
         env:
