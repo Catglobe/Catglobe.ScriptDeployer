@@ -25,7 +25,7 @@ public partial class CgScriptMaker(string environment, IReadOnlyDictionary<strin
       return stringBuilder.ToString();
    }
 
-   [GeneratedRegex(@"#IF\s+(?<env>Development|Production|Staging)\b(?<script>.*?)\b#ENDIF", RegexOptions.Singleline, -1)]
+   [GeneratedRegex(@"#IF\s+(?<env>Development|Production|Staging)\b(?<script>.*?)\b#ENDIF", RegexOptions.Singleline | RegexOptions.IgnoreCase, -1)]
    private static partial Regex EnvironmentRegex();
    [GeneratedRegex("""new WorkflowScript\s*\(\s*"(?<scriptName>[^"]+)"\s*\)""", RegexOptions.Singleline, -1)]
    private static partial Regex FindWorkflowReferences();
