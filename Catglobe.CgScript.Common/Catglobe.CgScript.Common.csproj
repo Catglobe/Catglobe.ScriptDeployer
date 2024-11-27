@@ -10,9 +10,10 @@
       <Authors>Dennis Haney</Authors>
       <RepositoryType>git</RepositoryType>
       <RepositoryUrl>https://github.com/catglobe/Catglobe.ScriptDeployer</RepositoryUrl>
-      <description>Development and deployment support for sites that needs scripts to run on a Catglobe site.</description>
+      <description>Support for sites that needs scripts to run on a Catglobe site.</description>
       <RepositoryCommit>e5d0dbf09c927044556a876eff07b81296da8976</RepositoryCommit>
       <PackageReadmeFile>README.md</PackageReadmeFile>
+      <PackageLicenseExpression>MIT</PackageLicenseExpression>
    </PropertyGroup>
 
    <PropertyGroup>
