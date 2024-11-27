@@ -13,17 +13,16 @@ npm install catglobe.cgscript.deployment
 npm install catglobe.cgscript.runtime
 ```
 
-# Usage of the library
+## Oidc client setup on server
 
-## Development
+### Runtime
 
-Development takes place on a developers personal device, which means that the developer can run the site locally and test it before deploying it to the staging server.
+Runtime requires the user to log in to the Catglobe site, and then the server will call the CgScript with the user's credentials.
 
-The authentication model is therefore that the developer logs into the using his own personal account. This account needs to have enough permission to set impersonation as configured on the scripts.
-
+Adjust the following cgscript with the parentResourceId, clientId, clientSecret and name of the client and the requested scopes for your purpose and execute it on your Catglobe site.
 ```cgscript
 number parentResourceId = 42;
-string clientId = "13BAC6C1-8DEC-46E2-B378-90E0325F8132"; //use your own id -> store this in appsettings.Development.json
+string clientId = "13BAC6C1-8DEC-46E2-B378-90E0325F8132"; //use your own id -> store this in appsettings.json
 bool canKeepSecret = true; //demo is a server app, so we can keep secrets
 string clientSecret = "secret";
 bool askUserForConsent = false;
@@ -37,6 +36,62 @@ LocalizedString name = new LocalizedString({"da-DK": "Min Demo App", "en-US": "M
 OidcAuthenticationFlow_createOrUpdate(parentResourceId, clientId, clientSecret, askUserForConsent, 
 	canKeepSecret, layout, RedirectUri, PostLogoutRedirectUri, scopes, optionalscopes, name);
 ```
+
+Edit your appsettings.json file to include the following with the clientId, clientSecret and the requested scopes:
+```json
+"CatglobeOidc": {
+  "Authority": "https://localhost:5001/",
+  "ClientId": "13BAC6C1-8DEC-46E2-B378-90E0325F8132",
+  "ClientSecret": "secret",
+  "PostLogoutRedirectUri": "https://localhost:7176/authentication/logout-callback",
+  "RedirectUri": "https://localhost:7176/authentication/login-callback",
+  "ResponseType": "code",
+  "DefaultScopes": [ "email", "offline_access", "roles" ],
+  "SaveTokens": true
+},
+"CatglobeApi": {
+  "FolderResourceId": 42,
+  "Site": "https://localhost:5001/"
+},
+```
+
+## asp.net setup
+
+### Runtime
+In your start procedure, add the following:
+```csharp
+const string SCHEMENAME = "CatglobeOidc"; //must match the section name in appsettings.json
+
+// Add services to the container.
+var services = builder.Services;
+services.AddAuthentication(SCHEMENAME)
+        .AddOpenIdConnect(SCHEMENAME, oidcOptions => {
+            builder.Configuration.GetSection(SCHEMENAME).Bind(oidcOptions);
+            oidcOptions.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+         })
+        .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
+services.AddCgScript(builder.Configuration.GetSection("CatglobeApi"));
+```
+
+Optionally, setup refresh-token refreshing as part of the cookie handling:
+```csharp
+      services.AddSingleton<CookieOidcRefresher>();
+      services.AddOptions<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme).Configure<CookieOidcRefresher>((cookieOptions, refresher) => {
+         cookieOptions.Events.OnValidatePrincipal = context => refresher.ValidateOrRefreshCookieAsync(context, SCHEMENAME);
+      });
+```
+You can find the CookieOidcRefresher [here](https://github.com/dotnet/blazor-samples/blob/main/9.0/BlazorWebAppOidc/BlazorWebAppOidc/CookieOidcRefresher.cs).
+
+
+
+# Usage of the library
+
+## Development
+
+Development takes place on a developers personal device, which means that the developer can run the site locally and test it before deploying it to the staging server.
+
+The authentication model is therefore that the developer logs into the using his own personal account. This account needs to have enough permission to set impersonation as configured on the scripts.
+
 
 ## Staging and Deployment
 

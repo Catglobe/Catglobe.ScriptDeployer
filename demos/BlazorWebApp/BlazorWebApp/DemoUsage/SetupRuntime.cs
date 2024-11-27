@@ -16,14 +16,14 @@ internal class SetupRuntime
       // Add services to the container.
       var services = builder.Services;
       services.AddAuthentication(SCHEMENAME)
-                       .AddOpenIdConnect(SCHEMENAME, oidcOptions => {
-                           builder.Configuration.GetSection(SCHEMENAME).Bind(oidcOptions);
-                           // ........................................................................
-                           // The OIDC handler must use a sign-in scheme capable of persisting 
-                           // user credentials across requests.
-                           oidcOptions.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                        })
-                       .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
+              .AddOpenIdConnect(SCHEMENAME, oidcOptions => {
+                  builder.Configuration.GetSection(SCHEMENAME).Bind(oidcOptions);
+                  // ........................................................................
+                  // The OIDC handler must use a sign-in scheme capable of persisting 
+                  // user credentials across requests.
+                  oidcOptions.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+               })
+              .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
 
       services.AddSingleton<CookieOidcRefresher>();
       // attaches a cookie OnValidatePrincipal callback to get
@@ -41,7 +41,7 @@ internal class SetupRuntime
       services.AddHttpForwarder();
 
       services.AddCgScript(builder.Configuration.GetSection("CatglobeApi"));
-      
+
       //and this is custom to this specific example... The rest above can be reused for pretty much any site
       services.AddSingleton<IWeatherForecaster, ServerWeatherForecaster>();
       services.AddSingleton<IPublicWeatherForecaster, ServerPublicWeatherForecaster>();
@@ -54,10 +54,8 @@ internal class SetupRuntime
       //Add this, if you need the browser (blazor wasm or javascript) to be able to call CgScript
       //add     <PackageReference Include="Microsoft.Extensions.ServiceDiscovery.Yarp" Version="9.0.0" />
       var site = app.Services.GetRequiredService<IOptions<CgScriptOptions>>().Value.Site;
-      app.MapForwarder("/api/cgscript", site+"api/cgscript", transformBuilder =>
-      {
-         transformBuilder.AddRequestTransform(async transformContext =>
-         {
+      app.MapForwarder("/api/cgscript", site + "api/cgscript", transformBuilder => {
+         transformBuilder.AddRequestTransform(async transformContext => {
             var accessToken = await transformContext.HttpContext.GetTokenAsync("access_token");
             transformContext.ProxyRequest.Headers.Authorization = new("Bearer", accessToken);
          });
