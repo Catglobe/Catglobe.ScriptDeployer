@@ -22,7 +22,6 @@ public static class HostExtensions
    /// <summary>
    /// Add CgScript support
    /// </summary>
-   [RequiresUnreferencedCode("Options")]
    public static IServiceCollection AddCgScript(this IServiceCollection services, IConfiguration namedConfigurationSection, bool isDevelopment)
    {
       services.Configure<CgScriptOptions>(namedConfigurationSection);
@@ -39,13 +38,13 @@ public static class HostExtensions
 
       services.AddScoped<CgScriptAuthHandler>();
       Action<IServiceProvider, HttpClient> configureClient = (sp, httpClient) => {
-                  var site = sp.GetRequiredService<IOptions<CgScriptOptions>>().Value.Site;
-                  httpClient.BaseAddress = new(site + "api/CgScript/");
+         var site = sp.GetRequiredService<IOptions<CgScriptOptions>>().Value.Site;
+         httpClient.BaseAddress = new(site + "api/CgScript/");
       };
       (isDevelopment
             ? services.AddHttpClient<ICgScriptApiClient, DevelopmentModeCgScriptApiClient>(configureClient)
             : services.AddHttpClient<ICgScriptApiClient, CgScriptApiClient>(configureClient))
-              .AddHttpMessageHandler<CgScriptAuthHandler>();
+        .AddHttpMessageHandler<CgScriptAuthHandler>();
       return services;
    }
 }

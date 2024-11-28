@@ -25,10 +25,12 @@
       <GenerateDocumentationFile>True</GenerateDocumentationFile>
       <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
       <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+      <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
    </PropertyGroup>
 
    <ItemGroup>
       <FrameworkReference Include="Microsoft.AspNetCore.App" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.0" />
    </ItemGroup>
 
    <ItemGroup>

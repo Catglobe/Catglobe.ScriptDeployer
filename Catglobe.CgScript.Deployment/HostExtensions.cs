@@ -29,7 +29,6 @@ public static class HostExtensions
    /// <remarks>
    /// To customize the way scripts are discovered, you can implement your own <see cref="IScriptProvider"/> and register it with the DI container before calling this method.
    /// </remarks>
-   [RequiresUnreferencedCode("Options")]
    public static IServiceCollection AddCgScriptDeployment(this IServiceCollection services, IConfiguration namedConfigurationSection)
    {
       services.Configure<DeploymentOptions>(namedConfigurationSection);

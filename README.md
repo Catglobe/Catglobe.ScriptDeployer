@@ -216,6 +216,6 @@ During development all scripts are executed as the developer account, therefore 
 
 See supported scopes in your Catglobe site `https://mysite.catglobe.com/.well-known/openid-configuration` under `scopes_supported`.
 
-## Can I use AOT compilation for my C#?
+## Can I use AOT compilation for my C# with this library?
 
-Yes, but you need to do the configuration manually instead of the `IConfiguration`.
+Yes
