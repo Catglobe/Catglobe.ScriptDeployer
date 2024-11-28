@@ -137,20 +137,18 @@ OidcServer2ServerClient_createOrUpdate(parentResourceId, clientId, clientSecret,
 
 Remember to set it up TWICE using 2 different `parentResourceId` and `ClientId`! Once for the production site and once for the staging site.
 
-### app setup
+### App setup
 
-Edit deployment environment to include the equivalent of this change to your appsettings.json file to include the following with the clientId, clientSecret and the requested scopes:
+Edit deployment environment in your hosting environment for both your staging and production site (remember to use 2 different sets of setup) to include:
 ```json
-env DOTNET_CatglobeDeployment__Authority "https://mysite.catglobe.com/"
 env DOTNET_CatglobeDeployment__ClientSecret "the client secret"
-env DOTNET_CatglobeDeployment__ClientSecret "the client secret"
-env DOTNET_CatglobeDeployment__ClientSecret "the client secret"
-
+env DOTNET_CatglobeDeployment__ClientId "the client id"
+env DOTNET_CatglobeDeployment__FolderResourceId "the parentResourceId"
+```
+and edit your appsettings.json for your deployment project to include this:
+```json
 "CatglobeDeployment": {
   "Authority": "https://mysite.catglobe.com/",
-  "ClientId": "DA431000-F318-4C55-9458-96A5D659866F",
-  "ClientSecret": "verysecret",
-  "FolderResourceId": 42,
   "ScriptFolder": "./CgScript"
 }
 ```
