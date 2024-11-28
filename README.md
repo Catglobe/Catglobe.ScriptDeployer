@@ -103,7 +103,7 @@ services.AddAuthentication(SCHEMENAME)
             oidcOptions.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
          })
         .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
-services.AddCgScript(builder.Configuration.GetSection("CatglobeApi"));
+services.AddCgScript(builder.Configuration.GetSection("CatglobeApi"), builder.Environment.IsDevelopment());
 ```
 
 Optionally, setup refresh-token refreshing as part of the cookie handling:

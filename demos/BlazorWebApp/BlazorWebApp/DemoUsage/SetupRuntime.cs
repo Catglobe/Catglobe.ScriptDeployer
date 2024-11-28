@@ -40,7 +40,7 @@ internal class SetupRuntime
       //Add this, if you need the browser (blazor wasm or javascript) to be able to call CgScript
       services.AddHttpForwarder();
 
-      services.AddCgScript(builder.Configuration.GetSection("CatglobeApi"));
+      services.AddCgScript(builder.Configuration.GetSection("CatglobeApi"), builder.Environment.IsDevelopment());
 
       //and this is custom to this specific example... The rest above can be reused for pretty much any site
       services.AddSingleton<IWeatherForecaster, ServerWeatherForecaster>();

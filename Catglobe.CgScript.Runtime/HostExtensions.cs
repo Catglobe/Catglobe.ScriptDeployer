@@ -14,22 +14,22 @@ public static class HostExtensions
    /// <summary>
    /// Add CgScript support
    /// </summary>
-   public static IServiceCollection AddCgScript(this IServiceCollection services, Action<CgScriptOptions>? configurator = null)
+   public static IServiceCollection AddCgScript(this IServiceCollection services, bool isDevelopment, Action<CgScriptOptions>? configurator = null)
    {
       if (configurator is not null) services.Configure(configurator);
-      return AddCommonCgScript(services);
+      return AddCommonCgScript(services, isDevelopment);
    }
    /// <summary>
    /// Add CgScript support
    /// </summary>
    [RequiresUnreferencedCode("Options")]
-   public static IServiceCollection AddCgScript(this IServiceCollection services, IConfiguration namedConfigurationSection)
+   public static IServiceCollection AddCgScript(this IServiceCollection services, IConfiguration namedConfigurationSection, bool isDevelopment)
    {
       services.Configure<CgScriptOptions>(namedConfigurationSection);
-      return AddCommonCgScript(services);
+      return AddCommonCgScript(services, isDevelopment);
    }
 
-   private static IServiceCollection AddCommonCgScript(IServiceCollection services)
+   private static IServiceCollection AddCommonCgScript(IServiceCollection services, bool isDevelopment)
    {
       services.AddHttpContextAccessor();
       services.AddHttpClient<IScriptMapping, ScriptMapping>((sp, httpClient) => {
@@ -38,10 +38,13 @@ public static class HostExtensions
       });
 
       services.AddScoped<CgScriptAuthHandler>();
-      services.AddHttpClient<ICgScriptApiClient, CgScriptApiClient>((sp, httpClient) => {
+      Action<IServiceProvider, HttpClient> configureClient = (sp, httpClient) => {
                   var site = sp.GetRequiredService<IOptions<CgScriptOptions>>().Value.Site;
                   httpClient.BaseAddress = new(site + "api/CgScript/");
-               })
+      };
+      (isDevelopment
+            ? services.AddHttpClient<ICgScriptApiClient, DevelopmentModeCgScriptApiClient>(configureClient)
+            : services.AddHttpClient<ICgScriptApiClient, CgScriptApiClient>(configureClient))
               .AddHttpMessageHandler<CgScriptAuthHandler>();
       return services;
    }
