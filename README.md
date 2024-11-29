@@ -115,6 +115,42 @@ services.AddOptions<CookieAuthenticationOptions>(CookieAuthenticationDefaults.Au
 ```
 You can find the CookieOidcRefresher [here](https://github.com/dotnet/blazor-samples/blob/main/9.0/BlazorWebAppOidc/BlazorWebAppOidc/CookieOidcRefresher.cs).
 
+Before `app.Run`, add the following:
+```csharp
+{
+  var group = endpoints.MapGroup("/authentication");
+
+  group.MapGet("/login", (string? returnUrl) => TypedResults.Challenge(GetAuthProperties(returnUrl)))
+       .AllowAnonymous();
+
+  // Sign out of the Cookie and OIDC handlers. If you do not sign out with the OIDC handler,
+  // the user will automatically be signed back in the next time they visit a page that requires authentication
+  // without being able to choose another account.
+  group.MapPost("/logout", ([FromForm] string? returnUrl) => TypedResults.SignOut(GetAuthProperties(returnUrl), [CookieAuthenticationDefaults.AuthenticationScheme, SCHEMENAME]));
+
+  static AuthenticationProperties GetAuthProperties(string? returnUrl)
+  {
+     // TODO: Use HttpContext.Request.PathBase instead.
+     const string pathBase = "/";
+
+     // Prevent open redirects.
+     if (string.IsNullOrEmpty(returnUrl))
+     {
+        returnUrl = pathBase;
+     }
+     else if (!Uri.IsWellFormedUriString(returnUrl, UriKind.Relative))
+     {
+        returnUrl = new Uri(returnUrl, UriKind.Absolute).PathAndQuery;
+     }
+     else if (returnUrl[0] != '/')
+     {
+        returnUrl = $"{pathBase}{returnUrl}";
+     }
+
+     return new AuthenticationProperties { RedirectUri = returnUrl };
+  }}
+```
+
 ## Deployment
 
 Deployment requires the a server side app to log in to the Catglobe site, and then the app will sync the scripts with the Catglobe site.
@@ -178,6 +214,14 @@ The authentication model is therefore that the developer logs into the using his
 
 All scripts are executed as the developer account and impersonation or public scripts are not supported!
 
+If you have any public scripts, it is highly recommended you configure the entire site for authorization in development mode:
+```csharp
+var razor = app.MapRazorComponents<App>()
+    ... removed for abbrivity ...;
+if (app.Environment.IsDevelopment())
+   razor.RequireAuthorization();
+```
+
 ## Staging and Deployment
 
 Setup `deployment` and sync your scripts to the Catglobe site.
@@ -202,13 +246,19 @@ Would return empty string for development, "Hello, World!" for production and "H
 
 The preprocessor is case insensitive, supports multiline and supports the standard `Environment.EnvironmentName` values.
 
-## Development mode impersonation and public scripts
-
-During development all scripts are executed as the developer account, therefore impersonation or public scripts are not supported!
-
 ## You get a 404 on first deployment?
 
 `parentResourceId`/`FolderResourceId` MUST be a folder.
+
+## I marked my script as public, but get 401 in development mode?
+
+Since all scripts are dynamically generated during development, it also requires running as an account that has permission to run dynamic scripts.
+
+See the example above on how to force the site to always force you to login after restart of site.
+
+## impersonation is ignored during development
+
+During development all scripts are executed as the developer account, therefore impersonation or public scripts are not supported!
 
 ## Where do I find the scopes that my site supports?
 

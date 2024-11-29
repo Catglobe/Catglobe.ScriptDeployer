@@ -73,10 +73,12 @@ app.UseAntiforgery();
 
 app.MapStaticAssets();
 
-app.MapRazorComponents<App>()
+var razor = app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(BlazorWebApp.Client._Imports).Assembly);
+if (app.Environment.IsDevelopment())
+   razor.RequireAuthorization();
 
 /***********************
  * Added for this demo *
