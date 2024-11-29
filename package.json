@@ -2,8 +2,8 @@
   "devDependencies": {
     "@droidsolutions-oss/semantic-release-nuget": "2.0.1",
     "@droidsolutions-oss/semantic-release-update-file": "1.4.0",
-    "eslint": "9.14.0",
-    "semantic-release": "^22.0.12"
+    "eslint": "9.15.0",
+    "semantic-release": "24.2.0"
   },
   "scripts": {
     "semantic-release": "semantic-release"
