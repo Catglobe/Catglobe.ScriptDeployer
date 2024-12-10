@@ -4,19 +4,20 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using Catglobe.CgScript.Common;
+using Microsoft.Extensions.Options;
 
 namespace Catglobe.CgScript.Runtime;
 
-internal partial class DevelopmentModeCgScriptApiClient(HttpClient httpClient, IScriptProvider scriptProvider) : ApiClientBase(httpClient)
+internal partial class DevelopmentModeCgScriptApiClient(HttpClient httpClient, IScriptProvider scriptProvider, IOptions<CgScriptOptions> options) : ApiClientBase(httpClient)
 {
-   IReadOnlyDictionary<string, IScriptDefinition>? _scriptDefinitions;
-   private BaseCgScriptMaker?                      _cgScriptMaker;
+   private IReadOnlyDictionary<string, IScriptDefinition>? _scriptDefinitions;
+   private BaseCgScriptMaker?                              _cgScriptMaker;
    protected override async ValueTask<string> GetPath(string scriptName, string? additionalParameters = null)
    {
       if (_scriptDefinitions == null)
       {
          _scriptDefinitions = await scriptProvider.GetAll();
-         _cgScriptMaker = new CgScriptMakerForDevelopment(_scriptDefinitions);
+         _cgScriptMaker     = new CgScriptMakerForDevelopment(_scriptDefinitions, options.Value.ImpersonationMapping);
       }
       return $"dynamicRun{additionalParameters ?? ""}";
    }

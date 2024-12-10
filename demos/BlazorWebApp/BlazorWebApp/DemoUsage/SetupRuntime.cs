@@ -21,7 +21,9 @@ internal class SetupRuntime
                   // ........................................................................
                   // The OIDC handler must use a sign-in scheme capable of persisting 
                   // user credentials across requests.
-                  oidcOptions.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                  oidcOptions.SignInScheme                            = CookieAuthenticationDefaults.AuthenticationScheme;
+                  oidcOptions.TokenValidationParameters.NameClaimType = "name";
+                  oidcOptions.TokenValidationParameters.RoleClaimType = "cg_roles";
                })
               .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
 

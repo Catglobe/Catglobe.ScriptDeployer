@@ -16,6 +16,7 @@ public class CgScriptMaker(string environment, IReadOnlyDictionary<string, IScri
    ///<inheritdoc/>
    protected override Task Generate(IScriptDefinition scriptDef, StringBuilder finalScript) =>
       ProcessScriptReferences(scriptDef, finalScript,  (_, calledScriptName) => {
+         finalScript.Append("new WorkflowScript(");
          try
          {
             finalScript.Append(map.GetIdOf(calledScriptName));
@@ -23,6 +24,8 @@ public class CgScriptMaker(string environment, IReadOnlyDictionary<string, IScri
          {
             throw new KeyNotFoundException($"Script '{scriptDef.ScriptName}' calls unknown script '{calledScriptName}'.");
          }
+         finalScript.Append(')');
+
          return Task.CompletedTask;
       }, new object());
 }

@@ -21,20 +21,21 @@ Runtime requires the user to log in to the Catglobe site, and then the server wi
 
 Adjust the following cgscript with the parentResourceId, clientId, clientSecret and name of the client and the requested scopes for your purpose and execute it on your Catglobe site.
 ```cgscript
-number parentResourceId = 42; //for this library to work, this MUST be a folder
-string clientId = "some id, a guid works, but any string is acceptable"; //use your own id -> store this in appsettings.json
-bool canKeepSecret = true; //demo is a server app, so we can keep secrets
-string clientSecret = "secret";
-bool askUserForConsent = false;
-string layout = "";
-Array RedirectUri = {"https://staging.myapp.com/signin-oidc", "https://localhost:7176/signin-oidc"};
-Array PostLogoutRedirectUri = {"https://staging.myapp.com/signout-callback-oidc", "https://localhost:7176/signout-callback-oidc"};
-Array scopes = {"email", "profile", "roles", "openid", "offline_access"};
-Array optionalscopes = {};
-LocalizedString name = new LocalizedString({"da-DK": "Min Demo App", "en-US": "My Demo App"}, "en-US");
+string clientSecret = User_generateRandomPassword(64);
+OidcAuthenticationFlow client = OidcAuthenticationFlow_createOrUpdate("some id, a guid works, but any string is acceptable");
+client.OwnerResourceId = 42; // for this library to work, this MUST be a folder
+client.CanKeepSecret = true; // demo is a server app, so we can keep secrets
+client.SetClientSecret(clientSecret);
+client.AskUserForConsent = false;
+client.Layout = "";
+client.RedirectUris = {"https://staging.myapp.com/signin-oidc", "https://localhost:7176/signin-oidc"};
+client.PostLogoutRedirectUris = {"https://staging.myapp.com/signout-callback-oidc", "https://localhost:7176/signout-callback-oidc"};
+client.Scopes = {"email", "profile", "roles", "openid", "offline_access"};
+client.OptionalScopes = {};
+client.DisplayNames = new LocalizedString({"da-DK": "Min Demo App", "en-US": "My Demo App"}, "en-US");
+client.Save();
 
-OidcAuthenticationFlow_createOrUpdate(parentResourceId, clientId, clientSecret, askUserForConsent, 
-	canKeepSecret, layout, RedirectUri, PostLogoutRedirectUri, scopes, optionalscopes, name);
+print(clientSecret);
 ```
 
 Remember to set it up TWICE using 2 different `parentResourceId`, `clientId`!
@@ -101,6 +102,8 @@ services.AddAuthentication(SCHEMENAME)
         .AddOpenIdConnect(SCHEMENAME, oidcOptions => {
             builder.Configuration.GetSection(SCHEMENAME).Bind(oidcOptions);
             oidcOptions.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            oidcOptions.TokenValidationParameters.NameClaimType = "name";
+            oidcOptions.TokenValidationParameters.RoleClaimType = "cg_roles";
          })
         .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
 services.AddCgScript(builder.Configuration.GetSection("CatglobeApi"), builder.Environment.IsDevelopment());
@@ -162,13 +165,16 @@ This app does NOT need to be a asp.net app, it can be a console app. e.g. if you
 Adjust the following cgscript with the impersonationResourceId, parentResourceId, clientId, clientSecret and name of the client for your purpose and execute it on your Catglobe site.
 You should not adjust scope for this.
 ```cgscript
-number parentResourceId = 42;
-string clientId = "DA431000-F318-4C55-9458-96A5D659866F"; //use your own id
-string clientSecret = "verysecret";
-number impersonationResourceId = User_getCurrentUser().ResourceId;
-Array scopes = {"scriptdeployment:w"};
-LocalizedString name = new LocalizedString({"da-DK": "Min Demo App", "en-US": "My Demo App"}, "en-US");
-OidcServer2ServerClient_createOrUpdate(parentResourceId, clientId, clientSecret, impersonationResourceId, scopes, name);
+string clientSecret = User_generateRandomPassword(64);
+OidcServer2ServerClient client = OidcServer2ServerClient_createOrUpdate("some id, a guid works, but any string is acceptable");
+client.OwnerResourceId = 42; // for this library to work, this MUST be a folder
+client.SetClientSecret(clientSecret);
+client.RunAsUserId = User_getCurrentUser().ResourceId;
+client.Scopes = {"scriptdeployment:w"};
+client.DisplayNames = new LocalizedString({"da-DK": "Min Demo App", "en-US": "My Demo App"}, "en-US");
+client.Save();
+
+print(clientSecret);
 ```
 
 Remember to set it up TWICE using 2 different `parentResourceId` and `ClientId`! Once for the production site and once for the staging site.
@@ -202,6 +208,50 @@ if (!app.Environment.IsDevelopment())
    await app.Services.GetRequiredService<IDeployer>().Sync(app.Environment.EnvironmentName, default);
 ```
 
+# Apps that respondents needs to use
+
+If you have an app that respondents needs to use, you can use the following code to make sure that the user is authenticated via a qas, so they can use the app without additional authentication.
+
+```cgscript
+client.CanAuthRespondent = true;
+```
+```csharp
+services.AddAuthentication(SCHEMENAME)
+        .AddOpenIdConnect(SCHEMENAME, oidcOptions => {
+            builder.Configuration.GetSection(SCHEMENAME).Bind(oidcOptions);
+            oidcOptions.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            oidcOptions.TokenValidationParameters.NameClaimType = "name";
+            oidcOptions.TokenValidationParameters.RoleClaimType = "cg_roles";
+
+            oidcOptions.Events.OnRedirectToIdentityProvider = context => {
+               if (context.Properties.Items.TryGetValue("respondent",        out var resp) &&
+                   context.Properties.Items.TryGetValue("respondent_secret", out var secret))
+               {
+                  context.ProtocolMessage.Parameters["respondent"]        = resp!;
+                  context.ProtocolMessage.Parameters["respondent_secret"] = secret!;
+               }
+               return Task.CompletedTask;
+            };
+         })
+        .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
+...
+   group.MapGet("/login", (string? returnUrl, [FromQuery(Name="respondent")]string? respondent, [FromQuery(Name="respondent_secret")]string? secret) => {
+            var authenticationProperties = GetAuthProperties(returnUrl);
+            if (!string.IsNullOrEmpty(respondent) && !string.IsNullOrEmpty(secret))
+            {
+               authenticationProperties.Items["respondent"]        = respondent;
+               authenticationProperties.Items["respondent_secret"] = secret;
+            }
+            return TypedResults.Challenge(authenticationProperties);
+         })
+        .AllowAnonymous();
+```
+```cgscript
+//in gateway or qas dummy script
+
+gotoUrl("https://siteurl.com/authentication/login?respondent=" + User_getCurrentUser().ResourceGuid + "&respondent_secret=" + qas.AccessCode);");
+```
+
 # Usage of the library
 
 ## Development
@@ -212,7 +262,7 @@ At this stage the scripts are NOT synced to the server, but are instead dynamica
 
 The authentication model is therefore that the developer logs into the using his own personal account. This account needs to have the questionnaire script dynamic execution access (plus any access required by the script).
 
-All scripts are executed as the developer account and impersonation or public scripts are not supported!
+All scripts are executed as the developer account and public scripts are not supported without authentication!
 
 If you have any public scripts, it is highly recommended you configure the entire site for authorization in development mode:
 ```csharp
@@ -255,10 +305,6 @@ The preprocessor is case insensitive, supports multiline and supports the standa
 Since all scripts are dynamically generated during development, it also requires running as an account that has permission to run dynamic scripts.
 
 See the example above on how to force the site to always force you to login after restart of site.
-
-## impersonation is ignored during development
-
-During development all scripts are executed as the developer account, therefore impersonation or public scripts are not supported!
 
 ## Where do I find the scopes that my site supports?
 

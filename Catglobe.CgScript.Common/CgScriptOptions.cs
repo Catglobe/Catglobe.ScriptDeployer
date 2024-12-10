@@ -13,6 +13,10 @@ public class CgScriptOptions
    /// <summary>
    /// Which root folder are we running from
    /// </summary>
-   public int FolderResourceId { get; set; }
+   public uint FolderResourceId { get; set; }
 
+   /// <summary>
+   /// For development, map these impersonations to these users instead. Use 0 to map to developer account
+   /// </summary>
+   public Dictionary<uint, uint>? ImpersonationMapping { get; set; }
 }

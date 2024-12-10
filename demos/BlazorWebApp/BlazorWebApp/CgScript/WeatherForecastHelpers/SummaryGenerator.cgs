@@ -1,3 +1,2 @@
-string city = Workflow_getParameters()[0];
-
-return User_getCurrentUser().Username + " says: It's too hot in " + city;
+//this is just fun to show we can also inline the call to the script
+new WorkflowScript("WeatherForecastHelpers/SummaryGenerator2").Invoke(Workflow_getParameters());

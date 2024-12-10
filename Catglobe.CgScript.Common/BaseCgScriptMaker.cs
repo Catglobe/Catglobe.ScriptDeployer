@@ -61,10 +61,7 @@ public abstract partial class BaseCgScriptMaker(string environment, IReadOnlyDic
          //add anything before the match to the sb
          finalScript.Append(rawScript.AsSpan(lastIdx, match.Index - lastIdx));
          //add the replacement to the sb
-         finalScript.Append("new WorkflowScript(");
-         var calledScriptName = match.Groups["scriptName"].Value;
-         await processSingleReference(state, calledScriptName);
-         finalScript.Append(')');
+         await processSingleReference(state, match.Groups["scriptName"].Value);
          lastIdx = match.Index + match.Length;
       }
       //add rest
