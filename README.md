@@ -272,6 +272,23 @@ if (app.Environment.IsDevelopment())
    razor.RequireAuthorization();
 ```
 
+### Impersonation during development
+
+If you want to seperate the development and production/staging accounts, you can use the following code to map impersonation to a different user during development:
+```json
+"CatglobeApi": {
+  "ImpersonationMapping": {
+    "115": 0
+  }
+}
+```
+
+`0` means it is mapped to the developer account.
+
+The recommended setup is that the developer has full access to the staging data and that all mapping therefore is set to 0.
+
+In production, the impersonation accounts there can then be set up to have the correct access to users and data.
+
 ## Staging and Deployment
 
 Setup `deployment` and sync your scripts to the Catglobe site.
