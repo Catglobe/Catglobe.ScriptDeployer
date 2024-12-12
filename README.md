@@ -49,7 +49,7 @@ Add the following to the appsettings.json with the scopes you made above and you
   "Authority": "https://mysite.catglobe.com/",
   "ClientId": "Production id",
   "ResponseType": "code",
-  "DefaultScopes": [ "email", "offline_access", "roles", "and others from above, except profile and openid " ],
+  "Scope": [ "email", "offline_access", "roles", "and others from above, except profile and openid " ],
   "SaveTokens": true
 },
 "CatglobeApi": {
@@ -103,7 +103,6 @@ services.AddAuthentication(SCHEMENAME)
             builder.Configuration.GetSection(SCHEMENAME).Bind(oidcOptions);
             oidcOptions.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             oidcOptions.TokenValidationParameters.NameClaimType = "name";
-            oidcOptions.TokenValidationParameters.RoleClaimType = "cg_roles";
          })
         .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
 services.AddCgScript(builder.Configuration.GetSection("CatglobeApi"), builder.Environment.IsDevelopment());
@@ -221,7 +220,6 @@ services.AddAuthentication(SCHEMENAME)
             builder.Configuration.GetSection(SCHEMENAME).Bind(oidcOptions);
             oidcOptions.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             oidcOptions.TokenValidationParameters.NameClaimType = "name";
-            oidcOptions.TokenValidationParameters.RoleClaimType = "cg_roles";
 
             oidcOptions.Events.OnRedirectToIdentityProvider = context => {
                if (context.Properties.Items.TryGetValue("respondent",        out var resp) &&
@@ -251,6 +249,85 @@ services.AddAuthentication(SCHEMENAME)
 
 gotoUrl("https://siteurl.com/authentication/login?respondent=" + User_getCurrentUser().ResourceGuid + "&respondent_secret=" + qas.AccessCode);");
 ```
+
+## I18n and email
+
+Users language, culture, timezone and email is stored in Catglobe. To use in your app, add the following:
+
+```csharp
+.AddOpenIdConnect(SCHEMENAME, oidcOptions => {
+   ...
+   // to get the locale/culture
+   oidcOptions.ClaimActions.MapUniqueJsonKey("locale",  "locale");
+   oidcOptions.ClaimActions.MapUniqueJsonKey("culture", "culture");
+
+  // must be true to get the zoneinfo and email claims
+  oidcOptions.GetClaimsFromUserInfoEndpoint = true;
+  oidcOptions.ClaimActions.MapUniqueJsonKey("zoneinfo", "zoneinfo");
+})
+```
+
+If you use Blazor WASM, you need to also send these claims to the WASM and parse them:
+
+```csharp
+//in SERVER program.cs:
+...
+    .AddAuthenticationStateSerialization(o=>o.SerializeAllClaims=true);
+```
+
+```csharp
+builder.Services.AddAuthenticationStateDeserialization(o=>o.DeserializationCallback = ProcessLanguageAndCultureFromClaims(o.DeserializationCallback));
+
+static Func<AuthenticationStateData?, Task<AuthenticationState>> ProcessLanguageAndCultureFromClaims(Func<AuthenticationStateData?, Task<AuthenticationState>> authenticationStateData) =>
+   state => {
+      var tsk = authenticationStateData(state);
+      if (!tsk.IsCompletedSuccessfully) return tsk;
+      var authState = tsk.Result;
+      if (authState?.User is not { } user) return tsk;
+      var userCulture   = user.FindFirst("culture")?.Value;
+      var userUiCulture = user.FindFirst("locale")?.Value ?? userCulture;
+      if (userUiCulture == null) return tsk;
+
+      CultureInfo.DefaultThreadCurrentCulture   = new(userCulture ?? userUiCulture);
+      CultureInfo.DefaultThreadCurrentUICulture = new(userUiCulture);
+      return tsk;
+   };
+
+```
+
+You can adapt something like https://www.meziantou.net/convert-datetime-to-user-s-time-zone-with-server-side-blazor-time-provider.htm for timezone
+
+## Role based authorization in your app
+
+If you want to use roles in your app, you need to request roles from oidc:
+```json
+"CatglobeOidc": {
+...
+  "Scope": [ ... "roles",  ],
+},
+```
+
+Next, you need to make a script that detect the users roles:
+
+```cgscript
+array scopesRequested = Workflow_getParameters()[0]["scopes"];
+...do some magic to figure out the roles...
+return {"thisUserIsAdmin"};
+```
+
+You can make this script public.
+
+```cgscript
+OidcAuthenticationFlow client = OidcAuthenticationFlow_createOrUpdate("some id, a guid works, but any string is acceptable");
+client.AppRolesScriptId = 424242; // the script that returns the roles
+...
+```
+
+and finally in any page, you can add either `@attribute [Authorize(Roles = "thisUserIsAdmin")]` or `<AuthorizeView Roles="thisUserIsAdmin">Only visible to admins<AuthorizeView>`.
+
+Why can the script NOT be in the app? Because it needs to run __before__ the app is ever deployed.
+
+**NOTICE!** We may change the way to setup the script in the future to avoid the bootstrapping issue.
 
 # Usage of the library
 

@@ -1,11 +1,16 @@
-﻿@implements IDisposable
+﻿@using System.Security.Claims
+@implements IDisposable
 
 @inject NavigationManager NavigationManager
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">BlazorWebApp</a>
-    </div>
+        <AuthorizeView>
+          <span class="navbar-text">Welcome, @context.User.Identity!.Name (@GetEmail(context))!</span>
+        </AuthorizeView>
+        <span class="navbar-text">@Thread.CurrentThread.CurrentCulture.Name @Thread.CurrentThread.CurrentUICulture.Name</span>
+ </div>
 </div>
 
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
@@ -84,5 +89,8 @@
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
+
+    private static string? GetEmail(AuthenticationState context) => context.User.FindFirstValue("email");
+
 }
 

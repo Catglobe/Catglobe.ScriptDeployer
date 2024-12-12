@@ -23,7 +23,14 @@ internal class SetupRuntime
                   // user credentials across requests.
                   oidcOptions.SignInScheme                            = CookieAuthenticationDefaults.AuthenticationScheme;
                   oidcOptions.TokenValidationParameters.NameClaimType = "name";
-                  oidcOptions.TokenValidationParameters.RoleClaimType = "cg_roles";
+
+                  // to get the locale/culture
+                  oidcOptions.ClaimActions.MapUniqueJsonKey("locale",  "locale");
+                  oidcOptions.ClaimActions.MapUniqueJsonKey("culture", "culture");
+
+                 // must be true to get the zoneinfo and email claims
+                 oidcOptions.GetClaimsFromUserInfoEndpoint = true;
+                 oidcOptions.ClaimActions.MapUniqueJsonKey("zoneinfo", "zoneinfo");
                })
               .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
 
@@ -51,6 +58,15 @@ internal class SetupRuntime
 
    public static void Use(WebApplication app)
    {
+      string[] culture = ["da-DK", "en-US", "en-GB"];
+      app.UseRequestLocalization(o => {
+         o.AddSupportedCultures(culture)
+          .AddSupportedUICultures(culture)
+          .SetDefaultCulture(culture[0]);
+         //insert before the final default provider (the AcceptLanguageHeaderRequestCultureProvider)
+         o.RequestCultureProviders.Insert(o.RequestCultureProviders.Count - 1, new OidcClaimsCultureProvider {Options = o});
+      });
+
       app.MapGroup("/authentication").MapLoginAndLogout();
 
       //Add this, if you need the browser (blazor wasm or javascript) to be able to call CgScript
@@ -64,4 +80,3 @@ internal class SetupRuntime
       }).RequireAuthorization();
    }
 }
-

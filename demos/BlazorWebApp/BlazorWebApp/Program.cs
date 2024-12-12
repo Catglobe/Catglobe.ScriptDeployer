@@ -19,7 +19,7 @@ SetupDeployment.Configure(builder);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents()
-    .AddAuthenticationStateSerialization();
+    .AddAuthenticationStateSerialization(o=>o.SerializeAllClaims=true);
 
 builder.Services.AddCascadingAuthenticationState();
 /***********************
